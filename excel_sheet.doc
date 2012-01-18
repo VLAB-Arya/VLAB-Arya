@@ -1,0 +1,91 @@
+How to create excel file with mysql data using php code 
+Hello friends, I have code for how to create a excel file with mysql data using php code. By following script to create excel file.We can implement it in admin section of websites for user list excel file.
+Follow the below script to retrieve the data from database:
+<?php
+	error_reporting(0);
+
+	// Connect to database
+	$dbhost = "database_host";    //your MySQL Server
+	$dbuser = "database_user";         //your MySQL User Name
+	$dbpass = "database_password";             //your MySQL Password 
+	$dbname = "database_name";  
+
+	//your MySQL Database Name of which database to use this
+	$tablename = "table_name"; //your MySQL Table Name which one you have to create excel file
+
+	// your mysql query here , we can edit this for your requirement
+	$sql="Select * from $tablename";
+	//create  code for connecting to mysql
+	$connect = mysql_connect($dbhost,$dbuser,$dbpass);
+	if(!$connect)
+	die("Couldn't connect to MySQL:<br>");
+
+	//select database
+	$db = mysql_select_db($dbname,$connect)
+	or die("Couldn't select database:<br>" . mysql_error(). "<br>" . mysql_errno());
+
+	//execute query
+	$result = mysql_query($sql,$connect)	
+	or die("Couldn't execute query:<br>" . mysql_error(). "<br>" . mysql_errno());
+
+
+	//define separator (defines columns in excel & tabs in word)
+	$sep = "\t"; //tabbed character
+	$fp = fopen('database.xls', "a");
+	$schema_insert = "";
+	$schema_insert_rows = "";
+
+	//start of printing column names as names of MySQL fields
+	//start of adding column names as names of MySQL fields
+	for ($i = 0; $i < mysql_num_fields($result); $i++)
+	{
+		$schema_insert_rows.=mysql_field_name($result,$i) . "\t";
+	}
+	$schema_insert_rows.="\n";
+
+	fwrite($fp, $schema_insert_rows);
+
+	//end of adding column names
+
+	//Getting data from database and adding to the excel file
+
+	//start while loop to get data
+		
+	while($row = mysql_fetch_row($result))
+	{
+		//set_time_limit(60); 
+		$schema_insert = "";
+		for($j=0; $j<mysql_num_fields($result);$j++)
+		{
+			if(!isset($row[$j]))
+			$schema_insert .= "NULL".$sep;
+			elseif ($row[$j] != "")
+			$schema_insert .= strip_tags("$row[$j]").$sep;
+			else
+			$schema_insert .= "".$sep;
+		}
+		$schema_insert = str_replace($sep."$", "", $schema_insert);
+
+		//this corrects output in excel when table fields contain \n or \r
+		//these two characters are now replaced with a space
+
+		$schema_insert = preg_replace("/\r\n|\n\r|\n|\r/", " ", $schema_insert);
+		$schema_insert .= "\n";
+		
+
+		//After adding data to excel file is completed then close the file 
+		fwrite($fp, $schema_insert);
+	}
+	fclose($fp);
+?>
+
+
+File made by this script like “database.xls” is saved in which folder where this script is saved.
+We also create doc file from this script.
+
+   ----- CHANGES   --
+1. you can change your database name , dbhost, dbuser, dbpass  and table-name in line no. 8 to 14 .
+2. you can change your table name in line no. 17.
+3. you can change your file to be created in line no. 34 . For examlpe I use "database.xls" and in "append" mode.you can also change your mode like
+   write,read,append etc.  
+4. you can make also doc file , just change in line no.34 as a database.doc
